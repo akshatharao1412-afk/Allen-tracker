@@ -13,12 +13,32 @@ navLinks.forEach(link => {
     });
 });
 
-// 2. Image Drag & Drop / Preview
+// API Key Storage handling
+const apiKeyInput = document.getElementById('api-key-input');
+const saveKeyBtn = document.getElementById('save-key-btn');
+
+// Load saved key if present
+if (localStorage.getItem('gemini_api_key')) {
+    apiKeyInput.value = localStorage.getItem('gemini_api_key');
+}
+
+saveKeyBtn.addEventListener('click', () => {
+    const key = apiKeyInput.value.trim();
+    if (key) {
+        localStorage.setItem('gemini_api_key', key);
+        alert('API Key saved securely in your browser!');
+    } else {
+        localStorage.removeItem('gemini_api_key');
+        alert('API Key cleared.');
+    }
+});
+
+// 2. Multi-Image Upload & Preview Handling
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('file-input');
 const previewArea = document.getElementById('preview-area');
-const imagePreview = document.getElementById('image-preview');
-const removeImgBtn = document.getElementById('remove-img');
+const thumbnailsContainer = document.getElementById('thumbnails-container');
+const clearImgsBtn = document.getElementById('clear-imgs-btn');
 const analyzeBtn = document.getElementById('analyze-btn');
 const statusText = document.getElementById('status-text');
 const resultsCard = document.getElementById('results-card');
@@ -27,13 +47,13 @@ const analysisSummary = document.getElementById('analysis-summary');
 const latestScoreDisplay = document.getElementById('latest-score');
 const sendToVaultBtn = document.getElementById('send-to-vault-btn');
 
+let selectedFiles = [];
 let currentAnalysisWeakSpots = [];
 
 dropzone.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) showPreview(file);
+    handleFiles(e.target.files);
 });
 
 dropzone.addEventListener('dragover', (e) => {
@@ -48,84 +68,128 @@ dropzone.addEventListener('dragleave', () => {
 dropzone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropzone.style.borderColor = '#cbd5e1';
-    const file = e.dataTransfer.files[0];
-    if (file) {
-        fileInput.files = e.dataTransfer.files;
-        showPreview(file);
-    }
+    handleFiles(e.dataTransfer.files);
 });
 
-function showPreview(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        imagePreview.src = e.target.result;
-        dropzone.style.display = 'none';
-        previewArea.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+function handleFiles(files) {
+    for (let i = 0; i < files.length; i++) {
+        if (selectedFiles.length < 10) { // Limit up to 10 files
+            selectedFiles.push(files[i]);
+        }
+    }
+    renderThumbnails();
 }
 
-removeImgBtn.addEventListener('click', () => {
+function renderThumbnails() {
+    thumbnailsContainer.innerHTML = '';
+    if (selectedFiles.length > 0) {
+        dropzone.style.display = 'none';
+        previewArea.style.display = 'block';
+
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const div = document.createElement('div');
+                div.className = 'thumbnail-item';
+                div.innerHTML = `<img src="${e.target.result}" alt="Thumbnail ${index + 1}">`;
+                thumbnailsContainer.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        previewArea.style.display = 'none';
+        dropzone.style.display = 'block';
+    }
+}
+
+clearImgsBtn.addEventListener('click', () => {
+    selectedFiles = [];
     fileInput.value = '';
-    imagePreview.src = '';
-    previewArea.style.display = 'none';
-    dropzone.style.display = 'block';
+    renderThumbnails();
     resultsCard.style.display = 'none';
     statusText.textContent = '';
 });
 
-// 3. Client-Side Image OCR Analysis Engine
-analyzeBtn.addEventListener('click', async () => {
-    const file = fileInput.files[0];
-    const testName = document.getElementById('test-name-input').value || 'Allen Practice Test';
+// Helper to convert File to base64
+function fileToGenerativePart(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64Data = reader.result.split(',')[1];
+            resolve({
+                inlineData: {
+                    data: base64Data,
+                    mimeType: file.type
+                }
+            });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
 
-    if (!file) {
-        alert('Please select or drop a screenshot image first.');
+// 3. Direct Gemini API Multi-Image Analysis Engine
+analyzeBtn.addEventListener('click', async () => {
+    const apiKey = localStorage.getItem('gemini_api_key') || apiKeyInput.value.trim();
+    const testName = document.getElementById('test-name-input').value || 'Allen Test Assessment';
+
+    if (!apiKey) {
+        alert('Please enter and save your Gemini API key in the Dashboard first.');
+        document.querySelector('[data-target="dashboard"]').click();
         return;
     }
 
-    statusText.textContent = 'Scanning image text... (this takes a few seconds)';
+    if (selectedFiles.length === 0) {
+        alert('Please upload at least one test screenshot.');
+        return;
+    }
+
+    statusText.textContent = `Preparing ${selectedFiles.length} image(s) for Gemini AI...`;
     analyzeBtn.disabled = true;
 
     try {
-        // Run client-side Tesseract OCR on the uploaded image
-        const result = await Tesseract.recognize(file, 'eng');
-        const extractedText = result.data.text;
+        // Convert all selected images to base64 parts
+        const imageParts = await Promise.all(selectedFiles.map(fileToGenerativePart));
 
-        statusText.textContent = 'Processing mistakes and topic keywords...';
+        statusText.textContent = 'Sending to Gemini AI for deep analysis...';
 
-        // Keywords to detect weak topics directly from scanned text
-        const topicKeywords = [
-            'lens', 'mirror', 'focal', 'refraction', 'reflection', 'optics',
-            'acid', 'base', 'salt', 'reaction', 'equation', 'mole', 'stoichiometry',
-            'triangle', 'similarity', 'quadratic', 'polynomial', 'algebra', 'force', 'motion',
-            'incorrect', 'wrong', 'marks', 'attempted', 'negative'
-        ];
+        const promptText = `Analyze these ${selectedFiles.length} test screenshot(s) from an Allen coaching exam ("${testName}"). 
+Identify specific weak topics, conceptual mistakes, or recurring error patterns. 
+Return your answer strictly as a JSON object with two fields:
+1. "weakSpots": an array of short, clear strings describing each weak topic or mistake to review.
+2. "summary": a brief 1-sentence summary of overall performance.`;
 
-        const lines = extractedText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        currentAnalysisWeakSpots = [];
-
-        // Search scanned lines for matching problem topics or numbers
-        lines.forEach(line => {
-            const lower = line.toLowerCase();
-            topicKeywords.forEach(keyword => {
-                if (lower.includes(keyword) && !currentAnalysisWeakSpots.includes(line)) {
-                    if (line.length < 80) { // Keep clean concise lines
-                        currentAnalysisWeakSpots.push(line);
-                    }
+        const payload = {
+            contents: [
+                {
+                    parts: [
+                        { text: promptText },
+                        ...imageParts
+                    ]
                 }
-            });
+            ],
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
+        };
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
 
-        // Fallback if the image text is purely symbols or clean numbers
-        if (currentAnalysisWeakSpots.length === 0) {
-            currentAnalysisWeakSpots = [
-                `Review questions flagged in ${testName}`,
-                'Re-check calculation steps and formula substitutions'
-            ];
+        if (!response.ok) {
+            throw new Error(`API error: ${response.statusText}`);
         }
 
-        // Render extracted findings
+        const data = await response.json();
+        const rawJsonText = data.candidates[0].content.parts[0].text;
+        const resultJson = JSON.parse(rawJsonText);
+
+        currentAnalysisWeakSpots = resultJson.weakSpots || [];
+
+        // Render results
         detectedWeakList.innerHTML = '';
         currentAnalysisWeakSpots.forEach(spot => {
             const li = document.createElement('li');
@@ -133,14 +197,14 @@ analyzeBtn.addEventListener('click', async () => {
             detectedWeakList.appendChild(li);
         });
 
-        analysisSummary.textContent = `Scanned ${lines.length} lines of text directly from your screenshot. Found ${currentAnalysisWeakSpots.length} potential weak spot(s) to review.`;
+        analysisSummary.textContent = resultJson.summary || `Analyzed ${selectedFiles.length} files successfully.`;
         latestScoreDisplay.textContent = testName;
         resultsCard.style.display = 'block';
         statusText.textContent = 'Analysis Complete!';
 
     } catch (err) {
         console.error(err);
-        statusText.textContent = 'Error reading image. Please ensure it is a clear image file.';
+        statusText.textContent = 'Error during API analysis. Check your API key and try again.';
     } finally {
         analyzeBtn.disabled = false;
     }
