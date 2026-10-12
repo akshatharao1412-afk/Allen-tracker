@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Tesseract.js OCR Engine for reading text from images -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -52,28 +50,33 @@
                 </div>
 
                 <div class="card">
-                    <h2>Quick Actions</h2>
-                    <p>Go to the <strong>AI Test Analyzer</strong> tab to upload your test screenshots and scan for mistakes automatically!</p>
+                    <h2>API Configuration</h2>
+                    <p style="margin-bottom: 0.75rem; color: #64748b; font-size: 0.9rem;">Enter your Gemini API key so the website can analyze your test screenshots directly:</p>
+                    <div class="input-row">
+                        <input type="password" id="api-key-input" placeholder="Paste your Gemini API Key here...">
+                        <button id="save-key-btn" class="btn-primary">Save Key</button>
+                    </div>
                 </div>
             </section>
 
             <!-- AI TEST ANALYZER SECTION -->
             <section id="analyzer" class="content-section">
                 <header class="section-header">
-                    <h1>Automatic Test Screenshot Analyzer</h1>
-                    <p>Upload a screenshot of your test paper, scorecard, or wrong questions to extract your weak topics.</p>
+                    <h1>AI Multi-Image Test Analyzer</h1>
+                    <p>Upload multiple screenshots of your test papers, scorecards, or wrong answers (up to 10 files).</p>
                 </header>
 
                 <div class="analyzer-container card">
                     <div class="upload-dropzone" id="dropzone">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <p>Drag & drop your test screenshot here, or <span>browse files</span></p>
-                        <input type="file" id="file-input" accept="image/*" hidden>
+                        <p>Drag & drop your test screenshots here, or <span>browse multiple files</span></p>
+                        <input type="file" id="file-input" accept="image/*" multiple hidden>
                     </div>
 
+                    <!-- Multi-image Preview Container -->
                     <div class="preview-area" id="preview-area" style="display: none;">
-                        <img id="image-preview" alt="Test Screenshot Preview">
-                        <button id="remove-img" class="btn-secondary">Remove Image</button>
+                        <div id="thumbnails-container" class="thumbnails-grid"></div>
+                        <button id="clear-imgs-btn" class="btn-secondary" style="margin-top: 1rem;">Clear All Images</button>
                     </div>
 
                     <div class="form-group" style="margin-top: 1.5rem;">
@@ -82,16 +85,16 @@
                     </div>
 
                     <button id="analyze-btn" class="btn-primary" style="margin-top: 1rem;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Scan & Analyze Screenshot
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze with Gemini AI
                     </button>
-                    <p id="status-text" style="margin-top: 0.5rem; color: #6366f1; font-weight: 500;"></p>
+                    <p id="status-text" style="margin-top: 0.75rem; color: #4f46e5; font-weight: 500;"></p>
                 </div>
 
                 <!-- Analysis Results Box -->
                 <div class="card results-card" id="results-card" style="display: none; margin-top: 2rem;">
-                    <h2>Detected Analysis Results</h2>
+                    <h2>AI Analysis Breakdown</h2>
                     <div class="results-content">
-                        <h3>Extracted Topics & Issues:</h3>
+                        <h3>Detected Weak Topics & Concepts:</h3>
                         <ul id="detected-weak-list">
                             <!-- Populated dynamically -->
                         </ul>
@@ -112,7 +115,7 @@
 
                 <div class="card">
                     <div class="input-row">
-                        <input type="text" id="mistake-input" placeholder="e.g., Convex lens formula sign error">
+                        <input type="text" id="mistake-input" placeholder="e.g., Convex lens sign convention errors">
                         <button id="add-mistake-btn" class="btn-primary">Add Mistake</button>
                     </div>
                     <ul id="mistake-list" class="mistake-list">
