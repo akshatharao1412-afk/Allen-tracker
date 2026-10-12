@@ -1,4 +1,4 @@
-// 1. Sidebar Tab Switching Logic
+// 1. Sidebar Navigation
 const navLinks = document.querySelectorAll('.nav-links a');
 const sections = document.querySelectorAll('.content-section');
 
@@ -13,13 +13,14 @@ navLinks.forEach(link => {
     });
 });
 
-// 2. Screenshot Analyzer Logic
+// 2. Image Drag & Drop / Preview
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('file-input');
 const previewArea = document.getElementById('preview-area');
 const imagePreview = document.getElementById('image-preview');
 const removeImgBtn = document.getElementById('remove-img');
 const analyzeBtn = document.getElementById('analyze-btn');
+const statusText = document.getElementById('status-text');
 const resultsCard = document.getElementById('results-card');
 const detectedWeakList = document.getElementById('detected-weak-list');
 const analysisSummary = document.getElementById('analysis-summary');
@@ -32,9 +33,7 @@ dropzone.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    if (file) {
-        showPreview(file);
-    }
+    if (file) showPreview(file);
 });
 
 dropzone.addEventListener('dragover', (e) => {
@@ -72,30 +71,61 @@ removeImgBtn.addEventListener('click', () => {
     previewArea.style.display = 'none';
     dropzone.style.display = 'block';
     resultsCard.style.display = 'none';
+    statusText.textContent = '';
 });
 
-// Simulate AI analysis outcome when an image is processed
-analyzeBtn.addEventListener('click', () => {
-    const testName = document.getElementById('test-name-input').value || 'Allen Test Assessment';
-    
-    if (!fileInput.files[0]) {
-        alert('Please upload a test screenshot first.');
+// 3. Client-Side Image OCR Analysis Engine
+analyzeBtn.addEventListener('click', async () => {
+    const file = fileInput.files[0];
+    const testName = document.getElementById('test-name-input').value || 'Allen Practice Test';
+
+    if (!file) {
+        alert('Please select or drop a screenshot image first.');
         return;
     }
 
-    analyzeBtn.textContent = 'Analyzing Screenshot...';
-    
-    setTimeout(() => {
-        analyzeBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Test Screenshot';
-        resultsCard.style.display = 'block';
-        
-        // Dynamic simulated smart findings based on test uploads
-        currentAnalysisWeakSpots = [
-            'Convex lens sign convention errors in optical formulas',
-            'Calculation mistakes in stoichiometry mole concepts',
-            'Algebraic rearrangement errors in quadratic equations'
+    statusText.textContent = 'Scanning image text... (this takes a few seconds)';
+    analyzeBtn.disabled = true;
+
+    try {
+        // Run client-side Tesseract OCR on the uploaded image
+        const result = await Tesseract.recognize(file, 'eng');
+        const extractedText = result.data.text;
+
+        statusText.textContent = 'Processing mistakes and topic keywords...';
+
+        // Keywords to detect weak topics directly from scanned text
+        const topicKeywords = [
+            'lens', 'mirror', 'focal', 'refraction', 'reflection', 'optics',
+            'acid', 'base', 'salt', 'reaction', 'equation', 'mole', 'stoichiometry',
+            'triangle', 'similarity', 'quadratic', 'polynomial', 'algebra', 'force', 'motion',
+            'incorrect', 'wrong', 'marks', 'attempted', 'negative'
         ];
 
+        const lines = extractedText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        currentAnalysisWeakSpots = [];
+
+        // Search scanned lines for matching problem topics or numbers
+        lines.forEach(line => {
+            const lower = line.toLowerCase();
+            topicKeywords.forEach(keyword => {
+                if (lower.includes(keyword) && !currentAnalysisWeakSpots.includes(line)) {
+                    if (line.length < 80) { // Keep clean concise lines
+                        currentAnalysisWeakSpots.push(line);
+                    }
+                }
+            });
+        });
+
+        // Fallback if the image text is purely symbols or clean numbers
+        if (currentAnalysisWeakSpots.length === 0) {
+            currentAnalysisWeakSpots = [
+                `Review questions flagged in ${testName}`,
+                'Re-check calculation steps and formula substitutions'
+            ];
+        }
+
+        // Render extracted findings
         detectedWeakList.innerHTML = '';
         currentAnalysisWeakSpots.forEach(spot => {
             const li = document.createElement('li');
@@ -103,12 +133,20 @@ analyzeBtn.addEventListener('click', () => {
             detectedWeakList.appendChild(li);
         });
 
-        analysisSummary.textContent = `Analysis complete for "${testName}". Identified 3 primary areas of error requiring immediate revision.`;
-        latestScoreDisplay.textContent = `${testName} (Analyzed)`;
-    }, 1200);
+        analysisSummary.textContent = `Scanned ${lines.length} lines of text directly from your screenshot. Found ${currentAnalysisWeakSpots.length} potential weak spot(s) to review.`;
+        latestScoreDisplay.textContent = testName;
+        resultsCard.style.display = 'block';
+        statusText.textContent = 'Analysis Complete!';
+
+    } catch (err) {
+        console.error(err);
+        statusText.textContent = 'Error reading image. Please ensure it is a clear image file.';
+    } finally {
+        analyzeBtn.disabled = false;
+    }
 });
 
-// 3. Mistake Vault Logic & Integration
+// 4. Mistake Vault Integration
 const addMistakeBtn = document.getElementById('add-mistake-btn');
 const mistakeInput = document.getElementById('mistake-input');
 const mistakeList = document.getElementById('mistake-list');
@@ -120,7 +158,7 @@ function addMistake(text) {
     if (text.trim() !== "") {
         const li = document.createElement('li');
         li.textContent = text;
-        
+
         const deleteBtn = document.createElement('button');
         deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
         deleteBtn.className = 'btn-secondary';
@@ -130,7 +168,7 @@ function addMistake(text) {
             mistakeCount = Math.max(0, mistakeCount - 1);
             weakCountDisplay.textContent = mistakeCount;
         };
-        
+
         li.appendChild(deleteBtn);
         mistakeList.appendChild(li);
         mistakeCount++;
@@ -145,6 +183,6 @@ addMistakeBtn.addEventListener('click', () => {
 
 sendToVaultBtn.addEventListener('click', () => {
     currentAnalysisWeakSpots.forEach(spot => addMistake(spot));
-    alert('Weak topics successfully transferred to your Mistake Vault!');
+    alert('Extracted weak topics sent straight to your Mistake Vault!');
     document.querySelector('[data-target="mistakes"]').click();
 });
