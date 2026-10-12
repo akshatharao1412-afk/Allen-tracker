@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tesseract.js OCR Engine for reading text from images -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -36,7 +38,7 @@
                     <div class="stat-card">
                         <i class="fa-solid fa-clipboard-check"></i>
                         <div class="stat-info">
-                            <h3>Latest Score</h3>
+                            <h3>Latest Test</h3>
                             <span id="latest-score">No test logged yet</span>
                         </div>
                     </div>
@@ -51,15 +53,15 @@
 
                 <div class="card">
                     <h2>Quick Actions</h2>
-                    <p>Head over to the <strong>AI Test Analyzer</strong> tab to upload your test screenshots and instantly extract your weak topics!</p>
+                    <p>Go to the <strong>AI Test Analyzer</strong> tab to upload your test screenshots and scan for mistakes automatically!</p>
                 </div>
             </section>
 
-            <!-- AI TEST ANALYZER SECTION (Replaces Old Test Logger) -->
+            <!-- AI TEST ANALYZER SECTION -->
             <section id="analyzer" class="content-section">
                 <header class="section-header">
-                    <h1>AI Test & Screenshot Analyzer</h1>
-                    <p>Upload a screenshot of your Allen marksheet or wrong answers to automatically detect weak topics.</p>
+                    <h1>Automatic Test Screenshot Analyzer</h1>
+                    <p>Upload a screenshot of your test paper, scorecard, or wrong questions to extract your weak topics.</p>
                 </header>
 
                 <div class="analyzer-container card">
@@ -79,19 +81,24 @@
                         <input type="text" id="test-name-input" placeholder="e.g., Allen Major Test - Physics & Math">
                     </div>
 
-                    <button id="analyze-btn" class="btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Test Screenshot</button>
+                    <button id="analyze-btn" class="btn-primary" style="margin-top: 1rem;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Scan & Analyze Screenshot
+                    </button>
+                    <p id="status-text" style="margin-top: 0.5rem; color: #6366f1; font-weight: 500;"></p>
                 </div>
 
                 <!-- Analysis Results Box -->
                 <div class="card results-card" id="results-card" style="display: none; margin-top: 2rem;">
-                    <h2>Analysis Results</h2>
+                    <h2>Detected Analysis Results</h2>
                     <div class="results-content">
-                        <h3>Detected Weak Topics:</h3>
+                        <h3>Extracted Topics & Issues:</h3>
                         <ul id="detected-weak-list">
                             <!-- Populated dynamically -->
                         </ul>
-                        <p id="analysis-summary"></p>
-                        <button id="send-to-vault-btn" class="btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-plus"></i> Add Weak Topics to Mistake Vault</button>
+                        <p id="analysis-summary" style="margin-top: 1rem; font-style: italic; color: #475569;"></p>
+                        <button id="send-to-vault-btn" class="btn-primary" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-plus"></i> Add All Detected Topics to Mistake Vault
+                        </button>
                     </div>
                 </div>
             </section>
@@ -105,7 +112,7 @@
 
                 <div class="card">
                     <div class="input-row">
-                        <input type="text" id="mistake-input" placeholder="e.g., Sign convention errors in Concave Lenses">
+                        <input type="text" id="mistake-input" placeholder="e.g., Convex lens formula sign error">
                         <button id="add-mistake-btn" class="btn-primary">Add Mistake</button>
                     </div>
                     <ul id="mistake-list" class="mistake-list">
