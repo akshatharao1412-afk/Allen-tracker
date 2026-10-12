@@ -1,1 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study & Test Tracker | Allen Prep</title>
+    <!-- Google Fonts for a clean aesthetic look -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Link to your CSS stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <h2>Allen Tracker</h2>
+            <ul class="nav-links">
+                <li><a href="#" class="active" data-target="dashboard">Dashboard</a></li>
+                <li><a href="#" data-target="tests">Test Logger</a></li>
+                <li><a href="#" data-target="mistakes">Mistake Vault</a></li>
+                <li><a href="#" data-target="planner">Study Planner</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- 1. Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <header>
+                    <h1>Welcome Back! 🚀</h1>
+                    <p>Track your scores, master your weak spots, and crush your goals.</p>
+                </header>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Latest Test Score</h3>
+                        <p id="latest-score">-- / --</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Weak Topics Flagged</h3>
+                        <p id="weak-count">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Whiteboard Focus</h3>
+                        <p id="whiteboard-focus">Triangle Proofs</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Test Logger Section -->
+            <section id="tests" class="content-section">
+                <h2>Log a New Test</h2>
+                <form id="test-form">
+                    <div class="form-group">
+                        <label for="test-name">Test Name / Code:</label>
+                        <input type="text" id="test-name" placeholder="e.g., Allen Minor Test 4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="test-subject">Subject:</label>
+                        <select id="test-subject">
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Mathematics">Mathematics</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="score-obtained">Marks Obtained:</label>
+                        <input type="number" id="score-obtained" placeholder="e.g., 72" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Save Test Score</button>
+                </form>
+            </section>
+
+            <!-- 3. Mistake Vault / Weak Topics Section -->
+            <section id="mistakes" class="content-section">
+                <h2>Mistake Vault & Whiteboard Log</h2>
+                <p>Record concepts you missed so you can put them on your wall/whiteboard.</p>
+                <div class="form-group">
+                    <input type="text" id="mistake-input" placeholder="e.g., Converse of Mid-Point Theorem application">
+                    <button id="add-mistake-btn" class="btn-primary">Add to Whiteboard List</button>
+                </div>
+                <ul id="mistake-list">
+                    <!-- Dynamic items will go here -->
+                </ul>
+            </section>
+
+            <!-- 4. Study Planner Section -->
+            <section id="planner" class="content-section">
+                <h2>Prepared Revision Plan</h2>
+                <div id="plan-container">
+                    <p class="placeholder-text">Your generated study plan based on weak topics will appear here.</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Link to your JavaScript file -->
+    <script src="script.js"></script>
+</body>
+</html>
