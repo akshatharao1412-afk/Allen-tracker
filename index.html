@@ -3,101 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study & Test Tracker | Allen Prep</title>
-    <!-- Google Fonts for a clean aesthetic look -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Link to your CSS stylesheet -->
+    <title>Allen Coaching Performance Tracker</title>
     <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            <h2>Allen Tracker</h2>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <h2>Allen Tracker</h2>
+            </div>
             <ul class="nav-links">
-                <li><a href="#" class="active" data-target="dashboard">Dashboard</a></li>
-                <li><a href="#" data-target="tests">Test Logger</a></li>
-                <li><a href="#" data-target="mistakes">Mistake Vault</a></li>
-                <li><a href="#" data-target="planner">Study Planner</a></li>
+                <li><a href="#" class="active" data-target="dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#" data-target="analyzer"><i class="fa-solid fa-brain"></i> AI Test Analyzer</a></li>
+                <li><a href="#" data-target="mistakes"><i class="fa-solid fa-triangle-exclamation"></i> Mistake Vault</a></li>
             </ul>
         </aside>
 
         <!-- Main Content Area -->
         <main class="main-content">
-            
-            <!-- 1. Dashboard Section -->
+            <!-- DASHBOARD SECTION -->
             <section id="dashboard" class="content-section active">
-                <header>
-                    <h1>Welcome Back! 🚀</h1>
-                    <p>Track your scores, master your weak spots, and crush your goals.</p>
+                <header class="section-header">
+                    <h1>Performance Dashboard</h1>
+                    <p>Overview of your Allen test progress and weak spots.</p>
                 </header>
-                
+
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>Latest Test Score</h3>
-                        <p id="latest-score">-- / --</p>
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <div class="stat-info">
+                            <h3>Latest Score</h3>
+                            <span id="latest-score">No test logged yet</span>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <h3>Weak Topics Flagged</h3>
-                        <p id="weak-count">0</p>
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div class="stat-info">
+                            <h3>Active Weak Spots</h3>
+                            <span id="weak-count">0</span>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Whiteboard Focus</h3>
-                        <p id="whiteboard-focus">Triangle Proofs</p>
+                </div>
+
+                <div class="card">
+                    <h2>Quick Actions</h2>
+                    <p>Head over to the <strong>AI Test Analyzer</strong> tab to upload your test screenshots and instantly extract your weak topics!</p>
+                </div>
+            </section>
+
+            <!-- AI TEST ANALYZER SECTION (Replaces Old Test Logger) -->
+            <section id="analyzer" class="content-section">
+                <header class="section-header">
+                    <h1>AI Test & Screenshot Analyzer</h1>
+                    <p>Upload a screenshot of your Allen marksheet or wrong answers to automatically detect weak topics.</p>
+                </header>
+
+                <div class="analyzer-container card">
+                    <div class="upload-dropzone" id="dropzone">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Drag & drop your test screenshot here, or <span>browse files</span></p>
+                        <input type="file" id="file-input" accept="image/*" hidden>
+                    </div>
+
+                    <div class="preview-area" id="preview-area" style="display: none;">
+                        <img id="image-preview" alt="Test Screenshot Preview">
+                        <button id="remove-img" class="btn-secondary">Remove Image</button>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label for="test-name-input">Test Name / Subject:</label>
+                        <input type="text" id="test-name-input" placeholder="e.g., Allen Major Test - Physics & Math">
+                    </div>
+
+                    <button id="analyze-btn" class="btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Test Screenshot</button>
+                </div>
+
+                <!-- Analysis Results Box -->
+                <div class="card results-card" id="results-card" style="display: none; margin-top: 2rem;">
+                    <h2>Analysis Results</h2>
+                    <div class="results-content">
+                        <h3>Detected Weak Topics:</h3>
+                        <ul id="detected-weak-list">
+                            <!-- Populated dynamically -->
+                        </ul>
+                        <p id="analysis-summary"></p>
+                        <button id="send-to-vault-btn" class="btn-primary" style="margin-top: 1rem;"><i class="fa-solid fa-plus"></i> Add Weak Topics to Mistake Vault</button>
                     </div>
                 </div>
             </section>
 
-            <!-- 2. Test Logger Section -->
-            <section id="tests" class="content-section">
-                <h2>Log a New Test</h2>
-                <form id="test-form">
-                    <div class="form-group">
-                        <label for="test-name">Test Name / Code:</label>
-                        <input type="text" id="test-name" placeholder="e.g., Allen Minor Test 4" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="test-subject">Subject:</label>
-                        <select id="test-subject">
-                            <option value="Physics">Physics</option>
-                            <option value="Chemistry">Chemistry</option>
-                            <option value="Mathematics">Mathematics</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="score-obtained">Marks Obtained:</label>
-                        <input type="number" id="score-obtained" placeholder="e.g., 72" required>
-                    </div>
-                    <button type="submit" class="btn-primary">Save Test Score</button>
-                </form>
-            </section>
-
-            <!-- 3. Mistake Vault / Weak Topics Section -->
+            <!-- MISTAKE VAULT SECTION -->
             <section id="mistakes" class="content-section">
-                <h2>Mistake Vault & Whiteboard Log</h2>
-                <p>Record concepts you missed so you can put them on your wall/whiteboard.</p>
-                <div class="form-group">
-                    <input type="text" id="mistake-input" placeholder="e.g., Converse of Mid-Point Theorem application">
-                    <button id="add-mistake-btn" class="btn-primary">Add to Whiteboard List</button>
-                </div>
-                <ul id="mistake-list">
-                    <!-- Dynamic items will go here -->
-                </ul>
-            </section>
+                <header class="section-header">
+                    <h1>Mistake Vault</h1>
+                    <p>Keep track of concepts to revise before your next major exam.</p>
+                </header>
 
-            <!-- 4. Study Planner Section -->
-            <section id="planner" class="content-section">
-                <h2>Prepared Revision Plan</h2>
-                <div id="plan-container">
-                    <p class="placeholder-text">Your generated study plan based on weak topics will appear here.</p>
+                <div class="card">
+                    <div class="input-row">
+                        <input type="text" id="mistake-input" placeholder="e.g., Sign convention errors in Concave Lenses">
+                        <button id="add-mistake-btn" class="btn-primary">Add Mistake</button>
+                    </div>
+                    <ul id="mistake-list" class="mistake-list">
+                        <!-- Dynamic items -->
+                    </ul>
                 </div>
             </section>
-
         </main>
     </div>
 
-    <!-- Link to your JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>
